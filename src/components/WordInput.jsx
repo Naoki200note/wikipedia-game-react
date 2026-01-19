@@ -1,10 +1,5 @@
 import { useState } from 'react';
 
-const themes = [
-  "動物","虫","植物","ゲーム","国","食べ物","スポーツ","音楽",
-  "映画","アニメ","番組","人物","グループ","企業"
-];
-
 const themeKeywords = {
   動物: ["動物","哺乳類","魚類","鳥類","爬虫類","両生類","生息"],
   虫: ["虫","昆虫","節足動物","幼虫","成虫"],
@@ -22,10 +17,10 @@ const themeKeywords = {
   企業: ["企業","会社","設立","事業","本社"]
 };
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
 export default function WordInput({ currentTheme, setRanking, pickRandomTheme }) {
   const [word, setWord] = useState("");
-
-  const ADMIN_KEY = "reset123";
 
   const handleRegister = async () => {
     const trimmedWord = word.trim();
@@ -43,6 +38,7 @@ export default function WordInput({ currentTheme, setRanking, pickRandomTheme })
         alert("Wikipediaの記事が見つかりませんでした");
         return;
       }
+
       const data = await wikiRes.json();
       if (!data.extract) {
         alert("本文を取得できませんでした");
@@ -59,7 +55,7 @@ export default function WordInput({ currentTheme, setRanking, pickRandomTheme })
 
       const count = text.length;
 
-      const registerRes = await fetch("http://localhost:3000/register", {
+      const registerRes = await fetch(`${API_BASE}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -74,13 +70,11 @@ export default function WordInput({ currentTheme, setRanking, pickRandomTheme })
         return;
       }
 
-      alert(`登録成功！\n「${trimmedWord}」のスコア：${count}文字`);
-      setWord("");
-
-      const rankingRes = await fetch("http://localhost:3000/ranking");
+      const rankingRes = await fetch(`${API_BASE}/ranking`);
       const rankingData = await rankingRes.json();
       setRanking(rankingData);
 
+      setWord("");
       pickRandomTheme();
 
     } catch (err) {
@@ -97,7 +91,9 @@ export default function WordInput({ currentTheme, setRanking, pickRandomTheme })
         value={word}
         onChange={(e) => setWord(e.target.value)}
       />
-      <button onClick={handleRegister}>🔍 Wikipediaで調べてスコア登録</button>
+      <button onClick={handleRegister}>
+        🔍 Wikipediaで調べてスコア登録
+      </button>
     </div>
   );
 }

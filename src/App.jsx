@@ -12,6 +12,7 @@ const themes = [
   "映画","アニメ","番組","人物","グループ","企業"
 ];
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const ADMIN_KEY = "reset123";
 
 export default function App() {
@@ -25,33 +26,18 @@ export default function App() {
   };
 
   const loadRanking = async () => {
-    try {
-      const res = await fetch("http://localhost:3000/ranking");
-      if (!res.ok) return;
-      const data = await res.json();
-      setRanking(data);
-    } catch (err) {
-      console.error(err);
-    }
+    const res = await fetch(`${API_BASE}/ranking`);
+    const data = await res.json();
+    setRanking(data);
   };
 
   const handleReset = async () => {
     if (!confirm("本当にランキングをリセットしますか？")) return;
 
-    try {
-      const res = await fetch(`http://localhost:3000/reset?key=${ADMIN_KEY}`, {
-        method: "POST"
-      });
-      if (!res.ok) {
-        alert("リセット失敗");
-        return;
-      }
-      alert("ランキングをリセットしました");
-      loadRanking();
-    } catch (err) {
-      console.error(err);
-      alert("リセットでエラーが発生しました");
-    }
+    await fetch(`${API_BASE}/reset?key=${ADMIN_KEY}`, {
+      method: "POST"
+    });
+    loadRanking();
   };
 
   useEffect(() => {
