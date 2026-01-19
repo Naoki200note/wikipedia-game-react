@@ -3,7 +3,23 @@ import cors from "cors";
 import sqlite3 from "sqlite3";
 
 const app = express();
-app.use(cors());
+
+const ALLOWED_ORIGINS = [
+  "https://dainty-mandazi-2dfb7f.netlify.app"
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"],
+}));
+
+app.options("*", cors());
+
 app.use(express.json());
 
 const ADMIN_KEY = "reset123";
@@ -31,7 +47,8 @@ app.post("/register", (req, res) => {
   db.run(
     "INSERT INTO ranking (word, theme, score) VALUES (?, ?, ?)",
     [word, theme, score],
-    () => {
+    (err) => {
+      if (err) return res.status(500).json({ error: "db error" });
       res.json({ success: true });
     }
   );
@@ -63,15 +80,12 @@ app.post("/reset", (req, res) => {
   }
 
   db.run("DELETE FROM ranking", (err) => {
-    if (err) {
-      return res.status(500).json({ error: "failed" });
-    }
+    if (err) return res.status(500).json({ error: "failed" });
     res.json({ success: true });
   });
 });
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
